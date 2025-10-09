@@ -1,26 +1,26 @@
-import { Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
+import { ReactNode } from "react";
 
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+
 import "./globals.css";
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
-  title: "Sudoku Perfect",
+  title: "Perfect Sudoku",
+  description: "A clean, calm, and elegant Sudoku experience.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${geistMono.variable}`}>{children}</body>
+      <body
+        className={`${inter.variable} ${geistMono.variable} flex min-h-screen flex-col items-center justify-between bg-slate-50 text-slate-900 antialiased`}
+      >
+        {children}
+      </body>
     </html>
   );
 }
