@@ -1,17 +1,26 @@
-import { allNums, cn } from "@/logic/utils";
-import { Cell as CellType, NumberType, Pos } from "@/types/types";
+import { Cell as CellType, NumType, Pose } from "@/types/types";
+import { cn } from "@/utils/cssUtils";
+import { Nums } from "@/utils/mathUtils";
 
 type Props = {
   cell: CellType;
-  r: number;
-  c: number;
+  row: number;
+  col: number;
   selected: boolean;
   isRelated: boolean;
-  selectedValue: NumberType | null;
-  onSelect: (p: Pos) => void;
+  selectedValue: NumType | null;
+  onSelect: (p: Pose) => void;
 };
 
-export default function Cell({ cell, r, c, selected, isRelated, selectedValue, onSelect }: Props) {
+export default function Cell({
+  cell,
+  row,
+  col,
+  selected,
+  isRelated,
+  selectedValue,
+  onSelect,
+}: Props) {
   const isIdentical = cell.value !== null && cell.value === selectedValue;
   const baseClasses =
     "w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 flex items-center justify-center font-mono transition-all duration-100 p-0 m-0 border-none outline-none";
@@ -26,10 +35,10 @@ export default function Cell({ cell, r, c, selected, isRelated, selectedValue, o
   }
 
   const textClasses = [
-    cell.readonly
+    cell.clues
       ? "font-bold text-slate-900 text-2xl sm:text-3xl"
       : "font-medium text-slate-800 text-xl sm:text-2xl",
-    cell.invalid ? "text-red-600" : "",
+    !cell.valid ? "text-red-600" : "",
   ];
 
   const finalClasses = cn(baseClasses, bgClasses, ...textClasses, "cursor-pointer select-none");
@@ -39,17 +48,17 @@ export default function Cell({ cell, r, c, selected, isRelated, selectedValue, o
 
   return (
     <button
-      onClick={() => onSelect({ r, c })}
+      onClick={() => onSelect({ row, col })}
       className={finalClasses}
-      aria-label={`Select cell at row ${r + 1}, column ${c + 1}`}
+      aria-label={`Select cell at row ${row + 1}, column ${col + 1}`}
     >
       {!hasNotes && cell.value !== null ? (
-        <div className={cell.readonly ? "text-slate-900" : "text-slate-800"}>{cell.value}</div>
+        <div className={cell.clues ? "text-slate-900" : "text-slate-800"}>{cell.value}</div>
       ) : hasNotes ? (
         <div className="grid h-full w-full grid-cols-3 p-[2px] text-xs font-normal text-slate-500 sm:p-[4px] sm:text-sm">
-          {allNums.map((n) => (
+          {Nums.map((n) => (
             <div key={n} className="flex items-center justify-center">
-              {notes[n as NumberType] ? n : ""}
+              {notes[n as NumType] ? n : ""}
             </div>
           ))}
         </div>

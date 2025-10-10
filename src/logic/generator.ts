@@ -1,90 +1,67 @@
 import countSolutions from "@/logic/solCounter";
-import { allNums, deepCloneGrid, makeEmptyGrid, randInt, shuffle } from "@/logic/utils";
-import isValidPlacement from "@/logic/validator";
-import { Grid, Difficulty } from "@/types/types";
+import { isValidPlacement } from "@/logic/validator";
+import { Grid, Diff } from "@/types/types";
+import { deepClone, emptyGrid, idxToPose } from "@/utils/gridUtils";
+import { Nums, randInt, shuffle } from "@/utils/mathUtils";
 
-// Generate a full solved grid
 function generateSolvedGrid(): Grid {
-  const g = makeEmptyGrid();
+  const grid = emptyGrid();
+  const initialValue = Nums[Math.floor(Math.random() * Nums.length)];
+  grid[0][0].value = initialValue;
 
-  // FIX: Force a random initial value in the first cell (0, 0)
-  // This breaks the solver's tendency to find the same solution path first.
-  const initialValue = allNums[Math.floor(Math.random() * allNums.length)];
-  g[0][0].value = initialValue;
-
-  // The recursive solver starts from the second cell (index 1)
   function helper(idx = 1): boolean {
     if (idx === 81) return true;
-    const r = Math.floor(idx / 9);
-    const c = idx % 9;
+    const { row, col } = idxToPose(idx);
+    const shuffledNums = shuffle([...Nums]);
 
-    const nums = shuffle([...allNums]);
-    for (const n of nums) {
-      if (isValidPlacement(g, r, c, n)) {
-        g[r][c].value = n;
+    for (const num of shuffledNums) {
+      if (isValidPlacement(grid, row, col, num)) {
+        grid[row][col].value = num;
         if (helper(idx + 1)) return true;
-        g[r][c].value = null;
+        grid[row][col].value = 0;
       }
     }
     return false;
   }
 
-  const ok = helper();
-
-  if (!ok) {
-    // Fallback in case the initial random value led to a dead end
-    g[0][0].value = null;
-    const ok2 = helper(0);
-    if (!ok2) throw new Error("failed to generate solved grid");
-  }
-
-  return g;
+  helper();
+  return grid;
 }
 
-export default function generatePuzzle(difficulty: Difficulty = "medium") {
+export default function generatePuzzle(difficulty: Diff = "medium") {
   const solved = generateSolvedGrid();
-  const puzzle = deepCloneGrid(solved);
+  const puzzle = deepClone(solved);
 
   const targetClues = {
-    // Sudoku puzzles are considered solvable with 17 clues, but
-    // generator difficulty is mostly based on number of empty cells left.
-    easy: randInt(40, 48), // Plenty of initial numbers
+    easy: randInt(40, 48),
     medium: randInt(35, 39),
     hard: randInt(30, 34),
-    expert: randInt(25, 29), // Getting tough
-    insane: randInt(22, 24), // Closer to the minimum required clues (17-21)
+    expert: randInt(25, 29),
+    insane: randInt(22, 24),
   }[difficulty];
 
   const positions = shuffle(
-    Array.from({ length: 81 }, (_, i) => ({ r: Math.floor(i / 9), c: i % 9 }))
+    Array.from({ length: 81 }, (_, i) => ({ row: idxToPose(i).row, col: idxToPose(i).col }))
   );
 
   let clues = 81;
-  for (const pos of positions) {
-    // Stop when we reach the minimum clue count for the desired difficulty
+  for (const pose of positions) {
     if (clues <= targetClues) break;
-    const { r, c } = pos;
-    const backup = puzzle[r][c].value;
+    const { row, col } = pose;
+    const backup = puzzle[row][col].value;
 
-    // Attempt to remove a cell
-    puzzle[r][c].value = null;
-
-    // Check if the removal leaves a unique solution
-    // Note: countSolutions is an expensive operation.
-    const solCount = countSolutions(puzzle, 2);
+    puzzle[row][col].value = 0;
+    const solCount = countSolutions(puzzle);
 
     if (solCount !== 1) {
-      // If not unique (0 or 2+ solutions), restore the value
-      puzzle[r][c].value = backup;
+      puzzle[row][col].value = backup;
     } else {
-      // If unique, keep it removed
       clues--;
     }
   }
 
-  // Set readonly property for initial clues
-  for (let r = 0; r < 9; r++)
-    for (let c = 0; c < 9; c++) puzzle[r][c].readonly = puzzle[r][c].value !== null;
+  for (let row = 0; row < 9; row++)
+    for (let col = 0; col < 9; col++) puzzle[row][col].clues = puzzle[row][col].value !== 0;
 
   return { puzzle, solved } as { puzzle: Grid; solved: Grid };
 }

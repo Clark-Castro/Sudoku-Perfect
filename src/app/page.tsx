@@ -7,16 +7,15 @@ import StatusBar from "@/components/StatusBar";
 import Toolbar from "@/components/ToolBar";
 import useSudoku from "@/hooks/useSudoku";
 import generatePuzzle from "@/logic/generator";
-import { allNums } from "@/logic/utils";
-import { NumberType, Pos, Difficulty, PuzzleData } from "@/types/types";
+import { NumType, Pose, Diff } from "@/types/types";
+import { Nums } from "@/utils/mathUtils";
 
-const initialDifficulty: Difficulty = "medium";
-// Removed: const initialServerPuzzle: PuzzleData = generatePuzzle(initialDifficulty);
+const initialDifficulty: Diff = "medium";
 
-const difficultyOptions: Difficulty[] = ["easy", "medium", "hard", "expert", "insane"];
+const difficultyOptions: Diff[] = ["easy", "medium", "hard", "expert", "insane"];
 
 export default function Page() {
-  const [difficulty, setDifficulty] = useState<Difficulty>(initialDifficulty);
+  const [difficulty, setDifficulty] = useState<Diff>(initialDifficulty);
   // FIX 1: Use a function for lazy state initialization to generate a new puzzle on mount
   const [puzzleData, setPuzzleData] = useState<PuzzleData>(() => generatePuzzle(initialDifficulty));
   // FIX 2: Add state to force a full component re-mount
@@ -24,17 +23,17 @@ export default function Page() {
 
   const sudoku = useSudoku(puzzleData.puzzle, puzzleData.solved);
 
-  const [selected, setSelected] = useState<Pos | null>(null);
+  const [selected, setSelected] = useState<Pose | null>(null);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (!selected) return;
-      const { r, c } = selected;
+      const { row, col } = selected;
 
       if (/^[1-9]$/.test(e.key)) {
-        const n = Number(e.key) as NumberType;
-        if (sudoku.pencilMode) sudoku.toggleNote(r, c, n);
-        else sudoku.setCellValue(r, c, n);
+        const n = Number(e.key) as NumType;
+        if (sudoku.pencilMode) sudoku.toggleNote(row, col, n);
+        else sudoku.setCellValue(row, col, n);
         e.preventDefault();
       }
 
@@ -44,7 +43,7 @@ export default function Page() {
       }
 
       if (e.key === "Backspace" || e.key === "Delete") {
-        sudoku.setCellValue(r, c, null);
+        sudoku.setCellValue(row, col, 0);
         e.preventDefault();
       }
 
@@ -58,7 +57,7 @@ export default function Page() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [selected, sudoku]);
 
-  const doGenerate = (newDifficulty: Difficulty) => {
+  const doGenerate = (newDifficulty: Diff) => {
     const newPuzzleData = generatePuzzle(newDifficulty);
 
     setPuzzleData(newPuzzleData);
@@ -76,7 +75,7 @@ export default function Page() {
   const doHint = () => {
     const hint = sudoku.getHint();
     if (!hint?.pos) return;
-    sudoku.setCellValue(hint.pos.r, hint.pos.c, hint.value!);
+    sudoku.setCellValue(hint.pos.row, hint.pos.col, hint.value!);
   };
 
   // FIX (from previous interaction): Directly set the grid to the solution
@@ -88,7 +87,7 @@ export default function Page() {
 
   const doClearCell = () => {
     if (!selected) return;
-    sudoku.setCellValue(selected.r, selected.c, null);
+    sudoku.setCellValue(selected.row, selected.col, 0);
   };
 
   const doResetPuzzle = () => {
@@ -96,7 +95,7 @@ export default function Page() {
     setSelected(null);
   };
 
-  const selectedValue = selected ? sudoku.grid[selected.r][selected.c].value : null;
+  const selectedValue = selected ? sudoku.grid[selected.row][selected.col].value : null;
 
   if (!sudoku.isClientInitialized) {
     return (
@@ -168,14 +167,14 @@ export default function Page() {
 
         {/* Number pad / pencil mode */}
         <div className="mt-8 grid w-full max-w-xs grid-cols-3 gap-3 sm:max-w-sm md:max-w-md">
-          {allNums.map((n) => (
+          {Nums.map((n) => (
             <button
               key={n}
               onClick={() => {
                 if (!selected) return;
-                const { r, c } = selected;
-                if (sudoku.pencilMode) sudoku.toggleNote(r, c, n as NumberType);
-                else sudoku.setCellValue(r, c, n as NumberType);
+                const { row, col } = selected;
+                if (sudoku.pencilMode) sudoku.toggleNote(row, col, n as NumType);
+                else sudoku.setCellValue(row, col, n as NumType);
               }}
               className="rounded-xl border border-gray-200 bg-white px-2 py-3 text-xl font-medium text-slate-900 shadow-lg transition-all hover:bg-sky-50 active:scale-[0.98] sm:py-4 sm:text-2xl"
             >

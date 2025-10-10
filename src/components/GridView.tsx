@@ -1,7 +1,7 @@
 import { CSSProperties } from "react";
 
-import { inBox } from "@/logic/utils";
-import { Grid, Pos, NumberType } from "@/types/types";
+import { Grid, Pose, NumType } from "@/types/types";
+import { boxPose } from "@/utils/gridUtils";
 
 import Cell from "./Cell";
 
@@ -12,26 +12,26 @@ export default function GridView({
   onSelect,
 }: {
   grid: Grid;
-  selected: Pos | null;
-  selectedValue: NumberType | null;
-  onSelect: (p: Pos) => void;
+  selected: Pose | null;
+  selectedValue: NumType | null;
+  onSelect: (p: Pose) => void;
 }) {
-  const boxCoords = selected ? inBox(selected.r, selected.c) : null;
+  const boxCoords = selected ? boxPose(selected.row, selected.col) : null;
 
   return (
     <div className="inline-grid grid-cols-9 overflow-hidden rounded-xl border-4 border-slate-900 bg-gray-100 shadow-2xl">
       {grid.map((row, r) =>
         row.map((cell, c) => {
-          const isSelected = selected && selected.r === r && selected.c === c;
+          const isSelected = selected && selected.row === r && selected.col === c;
 
           const isRelated: boolean = selected
-            ? selected.r === r ||
-              selected.c === c ||
+            ? selected.row === r ||
+              selected.col === c ||
               (boxCoords !== null &&
-                r >= boxCoords.br &&
-                r < boxCoords.br + 3 &&
-                c >= boxCoords.bc &&
-                c < boxCoords.bc + 3)
+                r >= boxCoords.boxRowMin &&
+                r <= boxCoords.boxRowMax &&
+                c >= boxCoords.boxColMin &&
+                c <= boxCoords.boxColMax)
             : false;
 
           const style: CSSProperties = {
@@ -45,8 +45,8 @@ export default function GridView({
             <div key={`${r}-${c}`} style={style}>
               <Cell
                 cell={cell}
-                r={r}
-                c={c}
+                row={r}
+                col={c}
                 selected={!!isSelected}
                 isRelated={isRelated && !isSelected}
                 selectedValue={selectedValue}

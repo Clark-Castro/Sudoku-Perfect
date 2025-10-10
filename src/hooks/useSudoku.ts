@@ -1,10 +1,10 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import solve from "@/logic/solver";
-import { deepCloneGrid, makeEmptyGrid } from "@/logic/utils";
-import isValidPlacement from "@/logic/validator";
-import { Grid, NumberType, Pos, Difficulty } from "@/types/types";
+import { checkIfSolved, solve } from "@/logic/solver";
+import { runValidation } from "@/logic/validator";
+import { Grid, Diff, NumType, Pose } from "@/types/types";
+import { deepClone } from "@/utils/gridUtils";
 
 const STORAGE_KEY = "sudoku_perfect_v1";
 
@@ -12,41 +12,12 @@ export type SavePayload = {
   grid: Grid;
   elapsedMs: number;
   pencilMode: boolean;
-  difficulty?: Difficulty;
-};
-
-const safeDeepClone = (g: Grid | null | undefined): Grid => {
-  if (g === null || g === undefined) return makeEmptyGrid();
-  return deepCloneGrid(g);
-};
-
-const runValidation = (g: Grid): Grid => {
-  const clone = deepCloneGrid(g);
-  for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) clone[r][c].invalid = false;
-  for (let r = 0; r < 9; r++)
-    for (let c = 0; c < 9; c++) {
-      const v = clone[r][c].value;
-      if (v === null) continue;
-      if (!isValidPlacement(clone, r, c, v)) clone[r][c].invalid = true;
-    }
-  return clone;
-};
-
-const checkIfSolved = (g: Grid): boolean => {
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
-      if (g[r][c].value === null || g[r][c].invalid) {
-        return false;
-      }
-    }
-  }
-  return true;
+  difficulty?: Diff;
 };
 
 export default function useSudoku(initial: Grid, initialSolution?: Grid) {
-  const initialGridRef = useRef(safeDeepClone(initial));
-  const initialSolutionRef = useRef(safeDeepClone(initialSolution));
-
+  const initialGridRef = useRef(deepClone(initial));
+  const initialSolutionRef = useRef(deepClone(initialSolution));
   const initialValidatedGrid = runValidation(initial);
 
   const [isClientInitialized, setIsClientInitialized] = useState(false);
@@ -123,7 +94,7 @@ export default function useSudoku(initial: Grid, initialSolution?: Grid) {
   }, [running, isClientInitialized]);
 
   const pushHistory = useCallback((g: Grid) => {
-    setHistory((h) => [...h, deepCloneGrid(g)]);
+    setHistory((h) => [...h, deepClone(g)]);
     setFuture([]);
   }, []);
 
@@ -139,14 +110,14 @@ export default function useSudoku(initial: Grid, initialSolution?: Grid) {
   }, []);
 
   const setCellValue = useCallback(
-    (r: number, c: number, value: NumberType | null) => {
+    (r: number, c: number, value: NumType) => {
       if (!running && !checkIfSolved(grid)) {
         setRunning(true);
       }
 
       setGrid((prev) => {
-        const clone = deepCloneGrid(prev);
-        if (clone[r][c].readonly) return prev;
+        const clone = deepClone(prev);
+        if (clone[r][c].clues) return prev;
         pushHistory(prev);
 
         clone[r][c].value = value;
@@ -159,10 +130,10 @@ export default function useSudoku(initial: Grid, initialSolution?: Grid) {
   );
 
   const toggleNote = useCallback(
-    (r: number, c: number, n: NumberType) => {
+    (r: number, c: number, n: NumType) => {
       setGrid((prev) => {
-        const clone = deepCloneGrid(prev);
-        if (clone[r][c].readonly) return prev;
+        const clone = deepClone(prev);
+        if (clone[r][c].clues) return prev;
         pushHistory(prev);
         clone[r][c].notes[n] = !clone[r][c].notes[n];
 
@@ -180,7 +151,7 @@ export default function useSudoku(initial: Grid, initialSolution?: Grid) {
       if (!running) setRunning(true);
 
       setGrid((prev) => {
-        setFuture((f) => [deepCloneGrid(prev), ...f]);
+        setFuture((f) => [deepClone(prev), ...f]);
         return updateGridState(last);
       });
 
@@ -196,7 +167,7 @@ export default function useSudoku(initial: Grid, initialSolution?: Grid) {
       if (!running) setRunning(true);
 
       setGrid((prev) => {
-        setHistory((h) => [...h, deepCloneGrid(prev)]);
+        setHistory((h) => [...h, deepClone(prev)]);
         return updateGridState(next);
       });
 
@@ -208,11 +179,10 @@ export default function useSudoku(initial: Grid, initialSolution?: Grid) {
     (p: Grid, solved?: Grid) => {
       const newSolution = solved ?? solve(p);
 
-      initialSolutionRef.current = safeDeepClone(newSolution);
-      initialGridRef.current = deepCloneGrid(p); // FIX: Always load the UN-solved puzzle (p) as the working grid.
-      // The logic to load the 'solved' grid has been moved to doSolve.
+      initialSolutionRef.current = deepClone(newSolution);
+      initialGridRef.current = deepClone(p);
 
-      let gridToLoad = deepCloneGrid(p);
+      let gridToLoad = deepClone(p);
 
       setSolution(newSolution);
       setHistory([]);
@@ -226,21 +196,21 @@ export default function useSudoku(initial: Grid, initialSolution?: Grid) {
   );
 
   const resetToInitial = useCallback(() => {
-    setSolution(deepCloneGrid(initialSolutionRef.current));
+    setSolution(deepClone(initialSolutionRef.current));
     setHistory([]);
     setFuture([]);
     setElapsedMs(0);
     setRunning(true);
 
-    setGrid(updateGridState(deepCloneGrid(initialGridRef.current)));
+    setGrid(updateGridState(deepClone(initialGridRef.current)));
   }, [updateGridState]);
 
-  const getHint = useCallback((): { pos?: Pos; value?: NumberType } | null => {
+  const getHint = useCallback((): { pos?: Pose; value?: NumType } | null => {
     if (!solution) return null;
-    for (let r = 0; r < 9; r++)
-      for (let c = 0; c < 9; c++)
-        if (grid[r][c].value === null) {
-          return { pos: { r, c }, value: solution[r][c].value as NumberType };
+    for (let row = 0; row < 9; row++)
+      for (let col = 0; col < 9; col++)
+        if (grid[row][col].value === null) {
+          return { pos: { row, col }, value: solution[row][col].value as NumType };
         }
     return null;
   }, [grid, solution]);
