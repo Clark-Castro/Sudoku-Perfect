@@ -10,16 +10,12 @@ import generatePuzzle from "@/logic/generator";
 import { NumType, Pose, Diff } from "@/types/types";
 import { Nums } from "@/utils/mathUtils";
 
-const initialDifficulty: Diff = "medium";
-
-const difficultyOptions: Diff[] = ["easy", "medium", "hard", "expert", "insane"];
+const diffOptions: Diff[] = ["easy", "medium", "hard", "expert", "insane"];
 
 export default function Page() {
-  const [difficulty, setDifficulty] = useState<Diff>(initialDifficulty);
-  // FIX 1: Use a function for lazy state initialization to generate a new puzzle on mount
-  const [puzzleData, setPuzzleData] = useState<PuzzleData>(() => generatePuzzle(initialDifficulty));
-  // FIX 2: Add state to force a full component re-mount
-  const [puzzleKey, setPuzzleKey] = useState(0);
+  const [difficulty, setDifficulty] = useState<Diff>("medium");
+  const [puzzleData, setPuzzleData] = useState(() => generatePuzzle("medium"));
+  const [reRender, setReRender] = useState(false);
 
   const sudoku = useSudoku(puzzleData.puzzle, puzzleData.solved);
 
@@ -31,9 +27,9 @@ export default function Page() {
       const { row, col } = selected;
 
       if (/^[1-9]$/.test(e.key)) {
-        const n = Number(e.key) as NumType;
-        if (sudoku.pencilMode) sudoku.toggleNote(row, col, n);
-        else sudoku.setCellValue(row, col, n);
+        const num = Number(e.key) as NumType;
+        if (sudoku.pencilMode) sudoku.toggleNote(row, col, num);
+        else sudoku.setCellValue(row, col, num);
         e.preventDefault();
       }
 
@@ -47,10 +43,10 @@ export default function Page() {
         e.preventDefault();
       }
 
-      if (e.key === "ArrowUp") setSelected((p) => ({ r: (p!.r + 8) % 9, c: p!.c }));
-      if (e.key === "ArrowDown") setSelected((p) => ({ r: (p!.r + 1) % 9, c: p!.c }));
-      if (e.key === "ArrowLeft") setSelected((p) => ({ r: p!.r, c: (p!.c + 8) % 9 }));
-      if (e.key === "ArrowRight") setSelected((p) => ({ r: p!.r, c: (p!.c + 1) % 9 }));
+      if (e.key === "ArrowUp") setSelected((p) => ({ row: (p!.row + 8) % 9, col: p!.col }));
+      if (e.key === "ArrowDown") setSelected((p) => ({ row: (p!.row + 1) % 9, col: p!.col }));
+      if (e.key === "ArrowLeft") setSelected((p) => ({ row: p!.row, col: (p!.col + 8) % 9 }));
+      if (e.key === "ArrowRight") setSelected((p) => ({ row: p!.row, col: (p!.col + 1) % 9 }));
     };
 
     window.addEventListener("keydown", handleKey);
@@ -66,47 +62,14 @@ export default function Page() {
 
     setDifficulty(newDifficulty);
     setSelected(null);
-    // FIX 3: Increment key to force a full re-render/re-mount
-    setPuzzleKey((k) => k + 1);
+    setReRender((k) => !k);
   };
 
-  const doUndo = () => sudoku.undo();
-  const doRedo = () => sudoku.redo();
-  const doHint = () => {
-    const hint = sudoku.getHint();
-    if (!hint?.pos) return;
-    sudoku.setCellValue(hint.pos.row, hint.pos.col, hint.value!);
-  };
-
-  // FIX (from previous interaction): Directly set the grid to the solution
   const doSolve = () => {
     if (!sudoku.solution) return;
     sudoku.setGrid(sudoku.solution);
     sudoku.setRunning(false);
   };
-
-  const doClearCell = () => {
-    if (!selected) return;
-    sudoku.setCellValue(selected.row, selected.col, 0);
-  };
-
-  const doResetPuzzle = () => {
-    sudoku.resetToInitial();
-    setSelected(null);
-  };
-
-  const selectedValue = selected ? sudoku.grid[selected.row][selected.col].value : null;
-
-  if (!sudoku.isClientInitialized) {
-    return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gray-50 p-4 sm:p-8 md:p-12">
-        <h1 className="mb-8 text-4xl font-extrabold text-slate-800 sm:text-5xl">
-          Sudoku Perfect 🧠
-        </h1>
-        <p className="mt-8 text-xl text-slate-700">Loading game...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center bg-gray-50 p-4 sm:p-8 md:p-12">
@@ -114,7 +77,7 @@ export default function Page() {
 
       {/* Difficulty Selector */}
       <div className="mb-6 flex flex-wrap justify-center gap-2">
-        {difficultyOptions.map((d) => (
+        {diffOptions.map((d) => (
           <button
             key={d}
             onClick={() => doGenerate(d)}
@@ -132,7 +95,6 @@ export default function Page() {
       {/* Main container ... */}
       <div
         // FIX 4: Apply the key here
-        key={puzzleKey}
         className="flex w-full max-w-lg flex-col items-center lg:max-w-xl xl:max-w-2xl"
       >
         <div className="mb-6 w-full">
@@ -146,9 +108,6 @@ export default function Page() {
         <div className="mb-8">
           <Toolbar
             onNew={() => doGenerate(difficulty)}
-            onUndo={doUndo}
-            onRedo={doRedo}
-            onHint={doHint}
             onSolve={doSolve}
             onTogglePencil={() => sudoku.setPencilMode((p) => !p)}
             pencilMode={sudoku.pencilMode}
@@ -157,12 +116,7 @@ export default function Page() {
 
         {/* Sudoku Grid */}
         <div className="mt-0">
-          <GridView
-            grid={sudoku.grid}
-            selected={selected}
-            selectedValue={selectedValue}
-            onSelect={(p) => setSelected(p)}
-          />
+          <GridView grid={sudoku.grid} selected={selected} onSelect={(p) => setSelected(p)} />
         </div>
 
         {/* Number pad / pencil mode */}
@@ -191,19 +145,6 @@ export default function Page() {
             }`}
           >
             {sudoku.pencilMode ? "PENCIL MODE: ON ✏️" : "PENCIL MODE: OFF"}
-          </button>
-
-          <button
-            onClick={doClearCell}
-            className="col-span-3 rounded-xl border border-red-200 bg-white px-2 py-3 text-xl font-medium text-red-600 shadow-lg transition-all hover:bg-red-50 active:scale-[0.98] sm:py-4"
-          >
-            Clear Cell
-          </button>
-          <button
-            onClick={doResetPuzzle}
-            className="col-span-3 rounded-xl border border-blue-200 bg-white px-2 py-3 text-xl font-medium text-blue-600 shadow-lg transition-all hover:bg-blue-50 active:scale-[0.98] sm:py-4"
-          >
-            Reset Puzzle
           </button>
         </div>
 

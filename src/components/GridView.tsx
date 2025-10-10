@@ -1,6 +1,6 @@
 import { CSSProperties } from "react";
 
-import { Grid, Pose, NumType } from "@/types/types";
+import { Grid, Pose } from "@/types/types";
 import { boxPose } from "@/utils/gridUtils";
 
 import Cell from "./Cell";
@@ -8,12 +8,10 @@ import Cell from "./Cell";
 export default function GridView({
   grid,
   selected,
-  selectedValue,
   onSelect,
 }: {
   grid: Grid;
   selected: Pose | null;
-  selectedValue: NumType | null;
   onSelect: (p: Pose) => void;
 }) {
   const boxCoords = selected ? boxPose(selected.row, selected.col) : null;
@@ -49,7 +47,6 @@ export default function GridView({
                 col={c}
                 selected={!!isSelected}
                 isRelated={isRelated && !isSelected}
-                selectedValue={selectedValue}
                 onSelect={onSelect}
               />
             </div>

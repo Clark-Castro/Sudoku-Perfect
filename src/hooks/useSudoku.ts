@@ -3,73 +3,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { checkIfSolved, solve } from "@/logic/solver";
 import { runValidation } from "@/logic/validator";
-import { Grid, Diff, NumType, Pose } from "@/types/types";
+import { Grid, NumType } from "@/types/types";
 import { deepClone } from "@/utils/gridUtils";
 
-const STORAGE_KEY = "sudoku_perfect_v1";
+export default function useSudoku(init: Grid, sol: Grid) {
+  const initGridRef = useRef(deepClone(init));
+  const solRef = useRef(deepClone(sol));
+  const initValidGrid = runValidation(init);
 
-export type SavePayload = {
-  grid: Grid;
-  elapsedMs: number;
-  pencilMode: boolean;
-  difficulty?: Diff;
-};
-
-export default function useSudoku(initial: Grid, initialSolution?: Grid) {
-  const initialGridRef = useRef(deepClone(initial));
-  const initialSolutionRef = useRef(deepClone(initialSolution));
-  const initialValidatedGrid = runValidation(initial);
-
-  const [isClientInitialized, setIsClientInitialized] = useState(false);
-
-  const [grid, setGrid] = useState<Grid>(initialValidatedGrid);
-  const [solution, setSolution] = useState<Grid | null>(() => initialSolution ?? solve(initial));
+  const [grid, setGrid] = useState(initValidGrid);
+  const [solution, setSolution] = useState(solve(init));
   const [pencilMode, setPencilMode] = useState(false);
-  const [history, setHistory] = useState<Grid[]>([]);
-  const [future, setFuture] = useState<Grid[]>([]);
-
   const [running, setRunning] = useState(true);
   const [elapsedMs, setElapsedMs] = useState(0);
-  const timerRef = useRef<number | null>(null);
-  const lastTickRef = useRef<number | null>(null);
+  const timerRef = useRef(0);
+  const lastTickRef = useRef(0);
 
   useEffect(() => {
-    const id = setTimeout(() => {
-      let isSolvedOnLoad = false;
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-
-        if (!raw) {
-          isSolvedOnLoad = checkIfSolved(initialValidatedGrid);
-        } else {
-          const parsed: SavePayload = JSON.parse(raw);
-          if (parsed?.grid) {
-            const restoredGrid = parsed.grid;
-            const newSolution = solve(restoredGrid);
-            const validatedGrid = runValidation(restoredGrid);
-            isSolvedOnLoad = checkIfSolved(validatedGrid);
-
-            setGrid(() => validatedGrid);
-            setSolution(() => newSolution);
-            setElapsedMs(() => parsed.elapsedMs ?? 0);
-            setPencilMode(() => parsed.pencilMode ?? false);
-          }
-        }
-      } catch {
-        // Ignore errors
-      }
-
-      setRunning((prev) => (isSolvedOnLoad ? false : prev));
-
-      setIsClientInitialized(true);
-    }, 0);
-
-    return () => clearTimeout(id);
-  }, [initialValidatedGrid]);
-
-  useEffect(() => {
-    if (!isClientInitialized) return;
-
     if (running) {
       lastTickRef.current = Date.now();
       timerRef.current = window.setInterval(() => {
@@ -81,22 +31,17 @@ export default function useSudoku(initial: Grid, initialSolution?: Grid) {
     } else {
       if (timerRef.current) {
         window.clearInterval(timerRef.current);
-        timerRef.current = null;
+        timerRef.current = 0;
       }
-      lastTickRef.current = null;
+      lastTickRef.current = 0;
     }
     return () => {
       if (timerRef.current) {
         window.clearInterval(timerRef.current);
-        timerRef.current = null;
+        timerRef.current = 0;
       }
     };
-  }, [running, isClientInitialized]);
-
-  const pushHistory = useCallback((g: Grid) => {
-    setHistory((h) => [...h, deepClone(g)]);
-    setFuture([]);
-  }, []);
+  }, [running]);
 
   const updateGridState = useCallback((newGrid: Grid) => {
     const validatedGrid = runValidation(newGrid);
@@ -110,130 +55,47 @@ export default function useSudoku(initial: Grid, initialSolution?: Grid) {
   }, []);
 
   const setCellValue = useCallback(
-    (r: number, c: number, value: NumType) => {
-      if (!running && !checkIfSolved(grid)) {
-        setRunning(true);
-      }
-
+    (row: number, col: number, value: NumType) => {
       setGrid((prev) => {
         const clone = deepClone(prev);
-        if (clone[r][c].clues) return prev;
-        pushHistory(prev);
+        if (clone[row][col].clues) return prev;
 
-        clone[r][c].value = value;
-        clone[r][c].notes = {};
+        clone[row][col].value = value;
+        clone[row][col].notes = {};
 
         return updateGridState(clone);
       });
-    },
-    [pushHistory, updateGridState, running, grid]
-  );
-
-  const toggleNote = useCallback(
-    (r: number, c: number, n: NumType) => {
-      setGrid((prev) => {
-        const clone = deepClone(prev);
-        if (clone[r][c].clues) return prev;
-        pushHistory(prev);
-        clone[r][c].notes[n] = !clone[r][c].notes[n];
-
-        return updateGridState(clone);
-      });
-    },
-    [pushHistory, updateGridState]
-  );
-
-  const undo = useCallback(() => {
-    setHistory((h) => {
-      if (h.length === 0) return h;
-      const last = h[h.length - 1];
-
-      if (!running) setRunning(true);
-
-      setGrid((prev) => {
-        setFuture((f) => [deepClone(prev), ...f]);
-        return updateGridState(last);
-      });
-
-      return h.slice(0, -1);
-    });
-  }, [updateGridState, running]);
-
-  const redo = useCallback(() => {
-    setFuture((f) => {
-      if (f.length === 0) return f;
-      const next = f[0];
-
-      if (!running) setRunning(true);
-
-      setGrid((prev) => {
-        setHistory((h) => [...h, deepClone(prev)]);
-        return updateGridState(next);
-      });
-
-      return f.slice(1);
-    });
-  }, [updateGridState, running]);
-
-  const loadPuzzle = useCallback(
-    (p: Grid, solved?: Grid) => {
-      const newSolution = solved ?? solve(p);
-
-      initialSolutionRef.current = deepClone(newSolution);
-      initialGridRef.current = deepClone(p);
-
-      let gridToLoad = deepClone(p);
-
-      setSolution(newSolution);
-      setHistory([]);
-      setFuture([]);
-      setElapsedMs(0);
-      setRunning(true);
-
-      setGrid(updateGridState(gridToLoad));
     },
     [updateGridState]
   );
 
-  const resetToInitial = useCallback(() => {
-    setSolution(deepClone(initialSolutionRef.current));
-    setHistory([]);
-    setFuture([]);
-    setElapsedMs(0);
-    setRunning(true);
+  const toggleNote = useCallback(
+    (row: number, col: number, note: NumType) => {
+      setGrid((prev) => {
+        const clone = deepClone(prev);
+        if (clone[row][col].clues) return prev;
+        clone[row][col].notes[note] = !clone[row][col].notes[note];
 
-    setGrid(updateGridState(deepClone(initialGridRef.current)));
-  }, [updateGridState]);
+        return updateGridState(clone);
+      });
+    },
+    [updateGridState]
+  );
 
-  const getHint = useCallback((): { pos?: Pose; value?: NumType } | null => {
-    if (!solution) return null;
-    for (let row = 0; row < 9; row++)
-      for (let col = 0; col < 9; col++)
-        if (grid[row][col].value === null) {
-          return { pos: { row, col }, value: solution[row][col].value as NumType };
-        }
-    return null;
-  }, [grid, solution]);
+  const loadPuzzle = useCallback(
+    (grid: Grid, solved: Grid) => {
+      solRef.current = deepClone(solved);
+      initGridRef.current = deepClone(grid);
 
-  // --- Persistence (Autosave) ---
-  useEffect(() => {
-    if (!isClientInitialized) return;
+      let gridToLoad = deepClone(grid);
 
-    const save = () => {
-      try {
-        const payload: SavePayload = {
-          grid,
-          elapsedMs,
-          pencilMode,
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      } catch {
-        // ignore
-      }
-    };
-    const id = window.setInterval(save, 2000);
-    return () => window.clearInterval(id);
-  }, [grid, elapsedMs, pencilMode, isClientInitialized]);
+      setSolution(solved);
+      setElapsedMs(0);
+      setRunning(true);
+      setGrid(updateGridState(gridToLoad));
+    },
+    [updateGridState]
+  );
 
   return {
     grid,
@@ -243,17 +105,9 @@ export default function useSudoku(initial: Grid, initialSolution?: Grid) {
     running,
     setRunning,
     elapsedMs,
-    // actions
     setCellValue,
     toggleNote,
-    undo,
-    redo,
     loadPuzzle,
-    resetToInitial,
-    getHint,
     solution,
-    history,
-    future,
-    isClientInitialized,
   } as const;
 }

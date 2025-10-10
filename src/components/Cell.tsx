@@ -8,28 +8,16 @@ type Props = {
   col: number;
   selected: boolean;
   isRelated: boolean;
-  selectedValue: NumType | null;
   onSelect: (p: Pose) => void;
 };
 
-export default function Cell({
-  cell,
-  row,
-  col,
-  selected,
-  isRelated,
-  selectedValue,
-  onSelect,
-}: Props) {
-  const isIdentical = cell.value !== null && cell.value === selectedValue;
+export default function Cell({ cell, row, col, selected, isRelated, onSelect }: Props) {
   const baseClasses =
     "w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 flex items-center justify-center font-mono transition-all duration-100 p-0 m-0 border-none outline-none";
 
   let bgClasses = "bg-white hover:bg-slate-100";
   if (selected) {
     bgClasses = "bg-sky-200 ring-2 ring-sky-400";
-  } else if (isIdentical) {
-    bgClasses = "bg-yellow-100 hover:bg-yellow-200";
   } else if (isRelated) {
     bgClasses = "bg-slate-50 hover:bg-slate-100";
   }
@@ -53,7 +41,9 @@ export default function Cell({
       aria-label={`Select cell at row ${row + 1}, column ${col + 1}`}
     >
       {!hasNotes && cell.value !== null ? (
-        <div className={cell.clues ? "text-slate-900" : "text-slate-800"}>{cell.value}</div>
+        <div className={cell.clues ? "text-slate-900" : "text-slate-800"}>
+          {cell.value ? cell.value : ""}
+        </div>
       ) : hasNotes ? (
         <div className="grid h-full w-full grid-cols-3 p-[2px] text-xs font-normal text-slate-500 sm:p-[4px] sm:text-sm">
           {Nums.map((n) => (
