@@ -15,7 +15,7 @@ export function solve(grid: Grid): Grid | null {
       if (isValidPlacement(grid2, row, col, num)) {
         grid2[row][col].value = num;
         if (helper()) return true;
-        grid2[row][col].value = 0;
+        grid2[row][col].value = null;
       }
     }
     return false;
@@ -28,7 +28,7 @@ export function solve(grid: Grid): Grid | null {
 export function checkIfSolved(grid: Grid): boolean {
   for (let row = 0; row < 9; row++) {
     for (let col = 0; col < 9; col++) {
-      if (grid[row][col].value === 0 || !grid[row][col].valid) {
+      if (grid[row][col].value === null || !grid[row][col].valid) {
         return false;
       }
     }

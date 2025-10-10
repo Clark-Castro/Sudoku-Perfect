@@ -6,7 +6,7 @@ import { Nums, randInt, shuffle } from "@/utils/mathUtils";
 
 function generateSolvedGrid(): Grid {
   const grid = emptyGrid();
-  const initialValue = Nums[Math.floor(Math.random() * Nums.length)];
+  const initialValue = randInt();
   grid[0][0].value = initialValue;
 
   function helper(idx = 1): boolean {
@@ -18,7 +18,7 @@ function generateSolvedGrid(): Grid {
       if (isValidPlacement(grid, row, col, num)) {
         grid[row][col].value = num;
         if (helper(idx + 1)) return true;
-        grid[row][col].value = 0;
+        grid[row][col].value = null;
       }
     }
     return false;
@@ -33,15 +33,16 @@ export default function generatePuzzle(difficulty: Diff = "medium") {
   const puzzle = deepClone(solved);
 
   const targetClues = {
-    easy: randInt(40, 48),
-    medium: randInt(35, 39),
-    hard: randInt(30, 34),
-    expert: randInt(25, 29),
-    insane: randInt(22, 24),
+    easy: randInt() + 40,
+    medium: randInt() + 30,
+    hard: randInt() + 20,
   }[difficulty];
 
   const positions = shuffle(
-    Array.from({ length: 81 }, (_, i) => ({ row: idxToPose(i).row, col: idxToPose(i).col }))
+    Array.from({ length: 81 }, (_, i) => ({
+      row: idxToPose(i).row,
+      col: idxToPose(i).col,
+    }))
   );
 
   let clues = 81;
@@ -50,7 +51,7 @@ export default function generatePuzzle(difficulty: Diff = "medium") {
     const { row, col } = pose;
     const backup = puzzle[row][col].value;
 
-    puzzle[row][col].value = 0;
+    puzzle[row][col].value = null;
     const solCount = countSolutions(puzzle);
 
     if (solCount !== 1) {
@@ -61,7 +62,7 @@ export default function generatePuzzle(difficulty: Diff = "medium") {
   }
 
   for (let row = 0; row < 9; row++)
-    for (let col = 0; col < 9; col++) puzzle[row][col].clues = puzzle[row][col].value !== 0;
+    for (let col = 0; col < 9; col++) puzzle[row][col].clues = puzzle[row][col].value !== null;
 
   return { puzzle, solved } as { puzzle: Grid; solved: Grid };
 }

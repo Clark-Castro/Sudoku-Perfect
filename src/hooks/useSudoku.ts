@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { checkIfSolved, solve } from "@/logic/solver";
 import { runValidation } from "@/logic/validator";
 import { Grid, NumType } from "@/types/types";
-import { deepClone } from "@/utils/gridUtils";
+import { deepClone, emptyNote } from "@/utils/gridUtils";
 
 export default function useSudoku(init: Grid, sol: Grid) {
   const initGridRef = useRef(deepClone(init));
@@ -55,13 +55,13 @@ export default function useSudoku(init: Grid, sol: Grid) {
   }, []);
 
   const setCellValue = useCallback(
-    (row: number, col: number, value: NumType) => {
+    (row: number, col: number, value: NumType | null) => {
       setGrid((prev) => {
         const clone = deepClone(prev);
         if (clone[row][col].clues) return prev;
 
         clone[row][col].value = value;
-        clone[row][col].notes = {};
+        clone[row][col].notes = emptyNote();
 
         return updateGridState(clone);
       });

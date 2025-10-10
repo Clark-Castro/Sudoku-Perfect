@@ -10,7 +10,7 @@ import generatePuzzle from "@/logic/generator";
 import { NumType, Pose, Diff } from "@/types/types";
 import { Nums } from "@/utils/mathUtils";
 
-const diffOptions: Diff[] = ["easy", "medium", "hard", "expert", "insane"];
+const diffOptions: Diff[] = ["easy", "medium", "hard"];
 
 export default function Page() {
   const [difficulty, setDifficulty] = useState<Diff>("medium");
@@ -39,14 +39,18 @@ export default function Page() {
       }
 
       if (e.key === "Backspace" || e.key === "Delete") {
-        sudoku.setCellValue(row, col, 0);
+        sudoku.setCellValue(row, col, null);
         e.preventDefault();
       }
 
-      if (e.key === "ArrowUp") setSelected((p) => ({ row: (p!.row + 8) % 9, col: p!.col }));
-      if (e.key === "ArrowDown") setSelected((p) => ({ row: (p!.row + 1) % 9, col: p!.col }));
-      if (e.key === "ArrowLeft") setSelected((p) => ({ row: p!.row, col: (p!.col + 8) % 9 }));
-      if (e.key === "ArrowRight") setSelected((p) => ({ row: p!.row, col: (p!.col + 1) % 9 }));
+      if (e.key === "ArrowUp")
+        setSelected((pose) => ({ row: (pose!.row + 8) % 9, col: pose!.col }));
+      if (e.key === "ArrowDown")
+        setSelected((pose) => ({ row: (pose!.row + 1) % 9, col: pose!.col }));
+      if (e.key === "ArrowLeft")
+        setSelected((pose) => ({ row: pose!.row, col: (pose!.col + 8) % 9 }));
+      if (e.key === "ArrowRight")
+        setSelected((pose) => ({ row: pose!.row, col: (pose!.col + 1) % 9 }));
     };
 
     window.addEventListener("keydown", handleKey);
@@ -92,11 +96,8 @@ export default function Page() {
         ))}
       </div>
 
-      {/* Main container ... */}
-      <div
-        // FIX 4: Apply the key here
-        className="flex w-full max-w-lg flex-col items-center lg:max-w-xl xl:max-w-2xl"
-      >
+      {/* Main container */}
+      <div className="flex w-full max-w-lg flex-col items-center lg:max-w-xl xl:max-w-2xl">
         <div className="mb-6 w-full">
           <StatusBar
             difficulty={difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}

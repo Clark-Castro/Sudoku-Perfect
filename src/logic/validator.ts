@@ -1,7 +1,12 @@
 import { Grid, NumType } from "@/types/types";
 import { boxPose, deepClone } from "@/utils/gridUtils";
 
-export function isValidPlacement(grid: Grid, row: number, col: number, val: NumType): boolean {
+export function isValidPlacement(
+  grid: Grid,
+  row: number,
+  col: number,
+  val: NumType | null
+): boolean {
   for (let colNum = 0; colNum < 9; colNum++)
     if (colNum !== col && grid[row][colNum].value === val) return false;
 
@@ -22,7 +27,7 @@ export function runValidation(grid: Grid): Grid {
   for (let row = 0; row < 9; row++)
     for (let col = 0; col < 9; col++) {
       const val = grid2[row][col].value;
-      if (val === 0) continue;
+      if (val === null) continue;
       if (!isValidPlacement(grid2, row, col, val)) grid2[row][col].valid = false;
     }
   return grid2;

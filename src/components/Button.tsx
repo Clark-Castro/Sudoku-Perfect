@@ -1,5 +1,8 @@
-import React from "react";
-type SvgIconComponent = React.ComponentType<React.SVGProps<SVGSVGElement> & { title?: string }>;
+"use client";
+
+import { ComponentType, SVGProps } from "react";
+
+type SvgIconComponent = ComponentType<SVGProps<SVGSVGElement> & { title?: string }>;
 
 export default function Button({
   icon: Icon,

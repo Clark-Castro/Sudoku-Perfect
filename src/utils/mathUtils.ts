@@ -1,9 +1,9 @@
 import { NumType } from "@/types/types";
 
-export const Nums = [1, 2, 3, 4, 5, 6, 7, 8, 9] as NumType[];
+export const Nums = [0, 1, 2, 3, 4, 5, 6, 7, 8] as NumType[];
 
-export function randInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+export function randInt() {
+  return Nums[Math.floor(Math.random() * 9)];
 }
 
 export function shuffle<T>(arr: T[]) {

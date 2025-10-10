@@ -1,8 +1,20 @@
-import { Cell, Grid, Pose } from "@/types/types";
+import { Cell, Grid, NoteType, Pose } from "@/types/types";
+
+export const emptyNote = (): NoteType => ({
+  0: false,
+  1: false,
+  2: false,
+  3: false,
+  4: false,
+  5: false,
+  6: false,
+  7: false,
+  8: false,
+});
 
 export const emptyCell = (): Cell => ({
-  value: 0,
-  notes: {},
+  value: null,
+  notes: emptyNote(),
   clues: false,
   valid: true,
 });
@@ -12,7 +24,7 @@ export const emptyGrid = (): Grid =>
 
 export const findEmpty = (grid: Grid): Pose | null => {
   for (let row = 0; row < 9; row++)
-    for (let col = 0; col < 9; col++) if (grid[row][col].value === 0) return { row, col };
+    for (let col = 0; col < 9; col++) if (grid[row][col].value === null) return { row, col };
   return null;
 };
 

@@ -19,7 +19,7 @@ export default function solCounter(grid: Grid): number {
       if (isValidPlacement(grid2, row, col, num)) {
         grid2[row][col].value = num;
         helper();
-        grid2[row][col].value = 0;
+        grid2[row][col].value = null;
         if (count > 1) return;
       }
     }

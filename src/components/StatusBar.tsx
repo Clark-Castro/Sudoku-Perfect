@@ -16,12 +16,13 @@ export default function StatusBar({
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const timeClass = running ? "font-normal" : "font-normal text-red-500 italic"; // <-- Use 'running'
+  const timeClass = `font-normal ${running ? "" : "text-red-500 italic"}`;
 
   return (
     <div className="flex w-full justify-between rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm text-slate-600 shadow-md">
       <span className="font-semibold text-slate-800">
-        Difficulty: <span className="font-normal text-sky-600">{difficulty}</span>
+        Difficulty:
+        <span className="font-normal text-sky-600">{difficulty}</span>
       </span>
       <span className="font-semibold text-slate-800">
         Time: <span className={timeClass}>{formatTime(elapsedMs)}</span>
