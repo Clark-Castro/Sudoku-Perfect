@@ -39,7 +39,7 @@ export const deepClone = (grid: Grid = emptyGrid()): Grid =>
     }))
   );
 
-export const shuffle = <T>(arr: T[]) => {
+export const shuffle = <T>(arr: T[]): T[] => {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -47,10 +47,12 @@ export const shuffle = <T>(arr: T[]) => {
   return arr;
 };
 
-export const shuffledPoses = () =>
-  Array.from({ length: 81 }, (_, i) => ({
+export const shuffledPoses = (): Pose[] => {
+  const poses: Pose[] = Array.from({ length: 81 }, (_, i) => ({
     row: idxToPose(i).row,
     col: idxToPose(i).col,
   }));
+  return shuffle(poses);
+};
 
 export const shuffledNums = () => shuffle([...Nums]);

@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { Cell as CellType, NumType, Pose } from "@/types/types";
 import { Nums } from "@/utils/mathUtils";
 
@@ -16,37 +14,21 @@ type Props = {
 
 export default function Cell({ cell, row, col, selected, isRelated, onSelect }: Props) {
   const baseClasses =
-    "w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 flex items-center justify-center font-mono transition-all duration-100 p-0 m-0 border-none outline-none cursor-pointer select-none ";
-  const [bgClasses, setBgClasses] = useState("bg-white hover:bg-slate-100 ");
-  const [textClasses, setTextClasses] = useState("");
-  const [validClasses, setValidClasses] = useState("");
-  const [finalClasses, setFinalClasses] = useState("");
+    "w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 flex items-center justify-center font-mono transition-all duration-100 p-0 m-0 border-none outline-none cursor-pointer select-none";
 
-  useEffect(() => {
-    if (selected) {
-      setBgClasses("bg-sky-200 ring-2 ring-sky-400 ");
-    } else if (isRelated) {
-      setBgClasses("bg-slate-50 hover:bg-slate-100 ");
-    } else {
-      setBgClasses("bg-white hover:bg-slate-100 "); // Reset background if not selected or related
-    }
+  const bgPart = selected
+    ? "bg-sky-200 ring-2 ring-sky-400"
+    : isRelated
+      ? "bg-slate-50 hover:bg-slate-100"
+      : "bg-white hover:bg-slate-100";
 
-    if (cell.clues) {
-      setTextClasses("font-bold text-slate-900 text-2xl sm:text-3xl ");
-    } else {
-      setTextClasses("font-medium text-slate-800 text-xl sm:text-2xl ");
-    }
+  const textPart = cell.clues
+    ? "font-bold text-slate-900 text-2xl sm:text-3xl"
+    : "font-medium text-slate-800 text-xl sm:text-2xl";
 
-    if (cell.valid) {
-      setValidClasses("");
-    } else {
-      setValidClasses("text-red-600 ");
-    }
-  }, [selected, isRelated, cell.clues, cell.valid]);
+  const validPart = cell.valid ? "" : "text-red-600";
 
-  useEffect(() => {
-    setFinalClasses(baseClasses + bgClasses + textClasses + validClasses);
-  }, [bgClasses, validClasses, textClasses]);
+  const finalClassName = [baseClasses, bgPart, textPart, validPart].filter(Boolean).join(" ");
 
   const notes = cell.notes;
   const hasNotes = Object.values(notes).some((v) => v);
@@ -55,7 +37,7 @@ export default function Cell({ cell, row, col, selected, isRelated, onSelect }: 
   return (
     <button
       onClick={() => onSelect({ row, col })}
-      className={finalClasses}
+      className={finalClassName}
       aria-label={`Select cell at row ${row + 1}, column ${col + 1}`}
     >
       {showValue ? (
