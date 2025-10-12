@@ -1,9 +1,9 @@
-import { isValidPlacement } from "@/logic/validator";
+import { isValidPlacement } from "@/logic/validators";
 import { Grid } from "@/types/types";
 import { deepClone, findEmpty } from "@/utils/gridUtils";
 import { Nums } from "@/utils/mathUtils";
 
-export default function solCounter(grid: Grid): number {
+export const solCount = (grid: Grid): number => {
   let count = 0;
   const grid2 = deepClone(grid);
 
@@ -26,4 +26,4 @@ export default function solCounter(grid: Grid): number {
   }
   helper();
   return count;
-}
+};

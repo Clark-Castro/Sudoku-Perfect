@@ -1,17 +1,18 @@
-import { isValidPlacement } from "@/logic/validator";
+import { isValidPlacement } from "@/logic/validators";
 import { Grid } from "@/types/types";
-import { findEmpty, deepClone } from "@/utils/gridUtils";
-import { Nums, shuffle } from "@/utils/mathUtils";
+import { findEmpty, deepClone, shuffledNums } from "@/utils/gridUtils";
 
-export function solve(grid: Grid): Grid | null {
+export const solve = (grid: Grid): Grid | null => {
   const grid2 = deepClone(grid);
 
   function helper(): boolean {
     const pos = findEmpty(grid2);
     if (!pos) return true;
+
     const { row, col } = pos;
-    const shuffledNums = shuffle([...Nums]);
-    for (const num of shuffledNums) {
+    const nums = shuffledNums();
+
+    for (const num of nums) {
       if (isValidPlacement(grid2, row, col, num)) {
         grid2[row][col].value = num;
         if (helper()) return true;
@@ -23,15 +24,4 @@ export function solve(grid: Grid): Grid | null {
 
   if (helper()) return grid2;
   return null;
-}
-
-export function checkIfSolved(grid: Grid): boolean {
-  for (let row = 0; row < 9; row++) {
-    for (let col = 0; col < 9; col++) {
-      if (grid[row][col].value === null || !grid[row][col].valid) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
+};

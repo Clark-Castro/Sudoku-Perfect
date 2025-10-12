@@ -1,10 +1,9 @@
 "use client";
 import { CSSProperties } from "react";
 
+import Cell from "@/components/Cell";
 import { Grid, Pose } from "@/types/types";
-import { boxPose } from "@/utils/gridUtils";
-
-import Cell from "./Cell";
+import { boxPose } from "@/utils/mathUtils";
 
 export default function GridView({
   grid,
@@ -36,8 +35,8 @@ export default function GridView({
           const style: CSSProperties = {
             borderRight: (c + 1) % 3 === 0 ? "3px solid #000" : "1px solid #cbd5e1",
             borderBottom: (r + 1) % 3 === 0 ? "3px solid #000" : "1px solid #cbd5e1",
-            borderLeft: c === 0 ? "3px solid #000" : undefined,
-            borderTop: r === 0 ? "3px solid #000" : undefined,
+            borderLeft: c % 3 === 0 ? "3px solid #000" : "1px solid #cbd5e1",
+            borderTop: r % 3 === 0 ? "3px solid #000" : "1px solid #cbd5e1",
           };
 
           return (

@@ -1,4 +1,5 @@
 import { Cell, Grid, NoteType, Pose } from "@/types/types";
+import { idxToPose, Nums } from "@/utils/mathUtils";
 
 export const emptyNote = (): NoteType => ({
   0: false,
@@ -32,20 +33,24 @@ export const deepClone = (grid: Grid = emptyGrid()): Grid =>
   grid.map((row) =>
     row.map((col) => ({
       value: col.value,
-      notes: col.notes,
+      notes: { ...col.notes },
       clues: col.clues,
       valid: col.valid,
     }))
   );
 
-export const boxPose = (row: number, col: number) => ({
-  boxRowMin: Math.floor(row / 3) * 3,
-  boxRowMax: Math.floor(row / 3) * 3 + 2,
-  boxColMin: Math.floor(col / 3) * 3,
-  boxColMax: Math.floor(col / 3) * 3 + 2,
-});
+export const shuffle = <T>(arr: T[]) => {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
 
-export const idxToPose = (idx: number): Pose => ({
-  row: Math.floor(idx / 9),
-  col: idx % 9,
-});
+export const shuffledPoses = () =>
+  Array.from({ length: 81 }, (_, i) => ({
+    row: idxToPose(i).row,
+    col: idxToPose(i).col,
+  }));
+
+export const shuffledNums = () => shuffle([...Nums]);

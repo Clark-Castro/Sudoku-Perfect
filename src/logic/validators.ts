@@ -1,12 +1,15 @@
 import { Grid, NumType } from "@/types/types";
-import { boxPose, deepClone } from "@/utils/gridUtils";
+import { deepClone } from "@/utils/gridUtils";
+import { boxPose } from "@/utils/mathUtils";
 
-export function isValidPlacement(
+export const isValidPlacement = (
   grid: Grid,
   row: number,
   col: number,
   val: NumType | null
-): boolean {
+): boolean => {
+  if (val === null) return true;
+
   for (let colNum = 0; colNum < 9; colNum++)
     if (colNum !== col && grid[row][colNum].value === val) return false;
 
@@ -19,11 +22,13 @@ export function isValidPlacement(
       if ((rowNum !== row || colNum !== col) && grid[rowNum][colNum].value === val) return false;
 
   return true;
-}
+};
 
-export function runValidation(grid: Grid): Grid {
+export const runValidation = (grid: Grid): Grid => {
   const grid2 = deepClone(grid);
+
   for (let row = 0; row < 9; row++) for (let col = 0; col < 9; col++) grid2[row][col].valid = true;
+
   for (let row = 0; row < 9; row++)
     for (let col = 0; col < 9; col++) {
       const val = grid2[row][col].value;
@@ -31,4 +36,16 @@ export function runValidation(grid: Grid): Grid {
       if (!isValidPlacement(grid2, row, col, val)) grid2[row][col].valid = false;
     }
   return grid2;
-}
+};
+
+export const isSolved = (grid: Grid): boolean => {
+  const grid2 = runValidation(grid);
+  for (let row = 0; row < 9; row++) {
+    for (let col = 0; col < 9; col++) {
+      if (grid2[row][col].value === null || !grid2[row][col].valid) {
+        return false;
+      }
+    }
+  }
+  return true;
+};

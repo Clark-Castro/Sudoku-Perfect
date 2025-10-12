@@ -27,6 +27,8 @@ export default function Cell({ cell, row, col, selected, isRelated, onSelect }: 
       setBgClasses("bg-sky-200 ring-2 ring-sky-400 ");
     } else if (isRelated) {
       setBgClasses("bg-slate-50 hover:bg-slate-100 ");
+    } else {
+      setBgClasses("bg-white hover:bg-slate-100 "); // Reset background if not selected or related
     }
 
     if (cell.clues) {
@@ -47,7 +49,8 @@ export default function Cell({ cell, row, col, selected, isRelated, onSelect }: 
   }, [bgClasses, validClasses, textClasses]);
 
   const notes = cell.notes;
-  const hasNotes = Object.keys(notes).length > 0;
+  const hasNotes = Object.values(notes).some((v) => v);
+  const showValue = cell.value !== null && !hasNotes;
 
   return (
     <button
@@ -55,10 +58,10 @@ export default function Cell({ cell, row, col, selected, isRelated, onSelect }: 
       className={finalClasses}
       aria-label={`Select cell at row ${row + 1}, column ${col + 1}`}
     >
-      {!hasNotes && cell.value !== null ? (
+      {showValue ? (
         <div className={cell.clues ? "text-slate-900" : "text-slate-800"}>{cell.value}</div>
       ) : hasNotes ? (
-        <div className="flex h-full w-full p-[2px] text-xs font-normal text-slate-500 sm:p-[4px] sm:text-sm">
+        <div className="flex h-full w-full flex-wrap p-[2px] text-xs font-normal text-slate-500 sm:p-[4px] sm:text-sm">
           {Nums.map((n) => (
             <div key={n} className="flex h-1/3 w-1/3 items-center justify-center">
               {notes[n as NumType] ? n : ""}
@@ -66,7 +69,7 @@ export default function Cell({ cell, row, col, selected, isRelated, onSelect }: 
           ))}
         </div>
       ) : (
-        <div className="opacity-0">1</div>
+        <div className="opacity-0">0</div>
       )}
     </button>
   );
