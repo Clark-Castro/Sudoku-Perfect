@@ -3,6 +3,7 @@
 import { cva } from "class-variance-authority";
 
 import Cell from "@/components/Cell";
+import { isValidPlacement } from "@/logic/validators";
 import { Grid, Pose } from "@/types/types";
 import { boxPose } from "@/utils/mathUtils";
 
@@ -46,7 +47,9 @@ export default function GridView({
                 r <= boxCoords.boxRowMax &&
                 c >= boxCoords.boxColMin &&
                 c <= boxCoords.boxColMax) ||
-              cell.value === grid[selected.row][selected.col].value);
+              (cell.value === grid[selected.row][selected.col].value && cell.value !== null) ||
+              !isValidPlacement(grid, r, c, grid[selected.row][selected.col].value) ||
+              cell.clues);
 
           const borderClassName = borderClasses({
             thickTop: r % 3 === 0,
