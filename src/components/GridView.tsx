@@ -1,9 +1,24 @@
 "use client";
-import { CSSProperties, useMemo } from "react";
+
+import { cva } from "class-variance-authority";
 
 import Cell from "@/components/Cell";
 import { Grid, Pose } from "@/types/types";
 import { boxPose } from "@/utils/mathUtils";
+
+const gridViewClasses = cva(
+  "inline-grid grid-cols-9 overflow-hidden rounded border-4 border-slate-900 bg-gray-100 shadow-2xl"
+);
+
+const borderClasses = cva("border border-slate-300", {
+  variants: {
+    thickTop: { true: "border-t-[3px] border-t-black" },
+    thickRight: { true: "border-r-[3px] border-r-black" },
+    thickBottom: { true: "border-b-[3px] border-b-black" },
+    thickLeft: { true: "border-l-[3px] border-l-black" },
+  },
+  defaultVariants: {},
+});
 
 export default function GridView({
   grid,
@@ -16,37 +31,38 @@ export default function GridView({
 }) {
   const boxCoords = selected ? boxPose(selected.row, selected.col) : null;
 
-  const cellBorderStyle = (r: number, c: number): CSSProperties => ({
-    borderRight: (c + 1) % 3 === 0 ? "3px solid #000" : "1px solid #cbd5e1",
-    borderBottom: (r + 1) % 3 === 0 ? "3px solid #000" : "1px solid #cbd5e1",
-    borderLeft: c % 3 === 0 ? "3px solid #000" : "1px solid #cbd5e1",
-    borderTop: r % 3 === 0 ? "3px solid #000" : "1px solid #cbd5e1",
-  });
-
   return (
-    <div className="inline-grid grid-cols-9 overflow-hidden rounded-xl border-4 border-slate-900 bg-gray-100 shadow-2xl">
+    <div className={gridViewClasses()}>
       {grid.map((row, r) =>
         row.map((cell, c) => {
           const isSelected = !!selected && selected.row === r && selected.col === c;
 
-          const isRelated: boolean = selected
-            ? selected.row === r ||
+          const isRelated =
+            selected &&
+            (selected.row === r ||
               selected.col === c ||
-              (boxCoords !== null &&
+              (boxCoords &&
                 r >= boxCoords.boxRowMin &&
                 r <= boxCoords.boxRowMax &&
                 c >= boxCoords.boxColMin &&
-                c <= boxCoords.boxColMax)
-            : false;
+                c <= boxCoords.boxColMax) ||
+              cell.value === grid[selected.row][selected.col].value);
+
+          const borderClassName = borderClasses({
+            thickTop: r % 3 === 0,
+            thickBottom: (r + 1) % 3 === 0,
+            thickLeft: c % 3 === 0,
+            thickRight: (c + 1) % 3 === 0,
+          });
 
           return (
-            <div key={`${r}-${c}`} style={cellBorderStyle(r, c)}>
+            <div key={`${r}-${c}`} className={borderClassName}>
               <Cell
                 cell={cell}
                 row={r}
                 col={c}
                 selected={isSelected}
-                isRelated={isRelated && !isSelected}
+                isRelated={!!isRelated && !isSelected}
                 onSelect={onSelect}
               />
             </div>

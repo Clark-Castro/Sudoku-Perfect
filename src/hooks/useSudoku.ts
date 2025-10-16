@@ -25,7 +25,7 @@ const sanitizeGridClues = (grid: Grid): Grid => {
 export default function useSudoku(initialDifficulty: Diff) {
   const initialData = getEmptyGridData();
 
-  const [puzzleData, setPuzzleData] = useState<PuzzleData>(initialData);
+  const [, setPuzzleData] = useState<PuzzleData>(initialData);
   const [isLoading, setIsLoading] = useState(true);
 
   const [grid, setGrid] = useState(() => runValidation(initialData.puzzle));

@@ -1,5 +1,6 @@
 "use client";
 
+import { cva } from "class-variance-authority";
 import { useEffect, useState } from "react";
 
 import GridView from "@/components/GridView";
@@ -7,8 +8,29 @@ import StatusBar from "@/components/StatusBar";
 import Toolbar from "@/components/ToolBar";
 import useSudoku from "@/hooks/useSudoku";
 import { NumType, Pose, Diff } from "@/types/types";
+import { cn } from "@/utils/cssUtils";
 
 const diffOptions: Diff[] = ["easy", "medium", "hard"];
+
+const pageContainer = cva(
+  "flex min-h-screen w-full flex-col items-center bg-gray-50 p-4 sm:p-8 md:p-12"
+);
+
+const titleClasses = cva("mb-4 text-4xl font-extrabold text-slate-800 sm:text-5xl");
+
+const difficultyButton = cva("rounded-full p-4 text-md font-semibold uppercase transition-colors", {
+  variants: {
+    active: {
+      true: "bg-sky-600 text-white shadow-md",
+      false: "bg-gray-200 text-slate-700 hover:bg-gray-300",
+    },
+  },
+  defaultVariants: {
+    active: false,
+  },
+});
+
+const diffButtonContainer = cva("mb-6 flex flex-wrap justify-center gap-3");
 
 export default function Page() {
   const [difficulty, setDifficulty] = useState<Diff>("medium");
@@ -24,6 +46,8 @@ export default function Page() {
     solution,
     setGrid,
     setRunning,
+    elapsedMs,
+    running,
   } = sudoku;
 
   const [selected, setSelected] = useState<Pose | null>(null);
@@ -41,7 +65,7 @@ export default function Page() {
       }
 
       if (e.key === "p" || e.key === "P") {
-        setPencilMode((p: boolean) => !p);
+        setPencilMode((p) => !p);
         e.preventDefault();
       }
 
@@ -82,49 +106,48 @@ export default function Page() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen w-full flex-col items-center bg-gray-50 p-4 sm:p-8 md:p-12">
-        <h1 className="mb-8 text-4xl font-extrabold text-slate-800 sm:text-5xl">
-          Sudoku Perfect 🧠
-        </h1>
+      <div className={cn(pageContainer())}>
+        <h1 className={cn(titleClasses())}>Sudoku Perfect 🧠</h1>
         <div className="text-xl text-slate-600">Generating puzzle...</div>
       </div>
     );
   }
+
   return (
-    <div className="flex min-h-screen w-full flex-col items-center bg-gray-50 p-4 sm:p-8 md:p-12">
-      <h1 className="mb-8 text-4xl font-extrabold text-slate-800 sm:text-5xl">Sudoku Perfect 🧠</h1>
-      <div className="mb-6 flex flex-wrap justify-center gap-2">
+    <div className={cn(pageContainer())}>
+      <h1 className={cn(titleClasses())}>Sudoku Perfect 🧠</h1>
+
+      <div className={cn(diffButtonContainer())}>
         {diffOptions.map((d) => (
           <button
             key={d}
             onClick={() => doGenerate(d)}
-            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase transition-colors ${
-              difficulty === d
-                ? "bg-sky-600 text-white shadow-md"
-                : "bg-gray-200 text-slate-700 hover:bg-gray-300"
-            }`}
+            className={cn(difficultyButton({ active: difficulty === d }))}
           >
             {d}
           </button>
         ))}
       </div>
+
       <div className="flex w-full max-w-lg flex-col items-center lg:max-w-xl xl:max-w-2xl">
         <div className="mb-6 w-full">
           <StatusBar
             difficulty={difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
-            elapsedMs={sudoku.elapsedMs}
-            running={sudoku.running}
+            elapsedMs={elapsedMs}
+            running={running}
           />
         </div>
+
         <div className="mb-8">
           <Toolbar
             onNew={() => doGenerate(difficulty)}
             onSolve={doSolve}
-            onTogglePencil={() => setPencilMode((p: boolean) => !p)}
+            onTogglePencil={() => setPencilMode((p) => !p)}
           />
         </div>
+
         <div className="mt-0">
-          <GridView grid={sudoku.grid} selected={selected} onSelect={(p) => setSelected(p)} />
+          <GridView grid={sudoku.grid} selected={selected} onSelect={setSelected} />
         </div>
       </div>
     </div>
