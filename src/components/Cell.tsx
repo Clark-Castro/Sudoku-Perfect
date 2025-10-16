@@ -16,7 +16,7 @@ type Props = {
 };
 
 const cellVariants = cva(
-  "w-10 h-12 sm:w-16 sm:h-16 md:w-18 md:h-18 flex items-center justify-center font-mono transition-all duration-100 p-0 m-0 border-none outline-none cursor-pointer select-none",
+  "w-10 h-10 sm:w-16 sm:h-16 md:w-18 md:h-18 flex items-center justify-center font-mono transition-all duration-100 p-0 m-0 border-none outline-none cursor-pointer select-none",
   {
     variants: {
       state: {

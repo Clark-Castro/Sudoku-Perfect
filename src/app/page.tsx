@@ -4,6 +4,7 @@ import { cva } from "class-variance-authority";
 import { useEffect, useState } from "react";
 
 import GridView from "@/components/GridView";
+import NumberPad from "@/components/NumberPad";
 import StatusBar from "@/components/StatusBar";
 import Toolbar from "@/components/ToolBar";
 import useSudoku from "@/hooks/useSudoku";
@@ -151,8 +152,21 @@ export default function Page() {
               ))}
             </div>
           </div>
-          <div className="flex w-full items-center justify-center md:w-5/6">
+          <div className="flex flex-col items-center justify-center md:w-5/6">
             <GridView grid={sudoku.grid} selected={selected} onSelect={setSelected} />
+            <NumberPad
+              onInput={(num) => {
+                const { row, col } = selected || { row: null, col: null };
+                if (pencilMode && row && col) toggleNote(row, col, num);
+                else if (row && col) setCellValue(row, col, num);
+              }}
+              onErase={() => {
+                if (selected) {
+                  const { row, col } = selected;
+                  setCellValue(row, col, null);
+                }
+              }}
+            />
           </div>
         </div>
       </div>
