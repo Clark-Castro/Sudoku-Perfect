@@ -29,7 +29,6 @@ You can play it here → [**Live Demo**](https://sudoku-perfect.vercel.app/)
 - ⌨️ **Keyboard Shortcuts** — Supports typing numbers, delete, and navigation
 - ☀️ **Dark/Light Mode** — Saves user theme preference
 - 📱 **Responsive Design** — Optimized for desktop and mobile
-- 🧮 **Stats Tracking** _(optional feature placeholder if you plan to add)_
 
 ---
 
