@@ -46,30 +46,9 @@ Then open http://localhost:3000.
 
 ---
 
-### 📂 Project Structure
-
-src/
-├── app/
-│ ├── page.tsx # Main game view
-│ └── layout.tsx # Layout and theme wrapper
-├── components/
-│ ├── GridView.tsx # Sudoku grid UI
-│ ├── NumberPad.tsx # Clickable number buttons
-│ └── Controls.tsx # Game actions (new, reset, pencil mode)
-├── hooks/
-│ └── useSudoku.ts # Core game logic and state
-├── utils/
-│ ├── sudoku.ts # Generator and solver algorithms
-│ ├── mathUtils.ts # Helper utilities
-│ └── cssUtils.ts # Tailwind helper
-└── types/
-└── types.ts # Shared type definitions
-
----
-
 ### 💡 Design Philosophy
 
-Sudoku Perfect follows a “clarity-first” approach: minimal distractions, high readability, and intuitive interactions. The UI is designed to feel tactile yet quiet — prioritizing logic, flow, and focus over visual clutter.
+Sudoku Perfect follows a “clarity-first” approach: minimal distractions, high readability, and intuitive interactions. The UI is designed to feel tactile yet quiet, prioritizing logic, flow, and focus over visual clutter.
 
 ---
 
