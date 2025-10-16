@@ -19,7 +19,7 @@ const pageContainer = cva(
 const titleClasses = cva("mb-4 text-4xl font-extrabold text-slate-800 sm:text-5xl");
 
 const difficultyButton = cva(
-  "rounded-full w-1/4 p-2 text-md font-semibold uppercase transition-colors",
+  "rounded-full w-1/4 p-2 mb-10 text-md font-semibold uppercase transition-colors",
   {
     variants: {
       active: {
@@ -129,8 +129,8 @@ export default function Page() {
           />
         </div>
 
-        <div className="flex h-full w-full items-start justify-center">
-          <div className="m-3 flex w-1/6 flex-col">
+        <div className="flex h-full w-full flex-col items-start justify-center md:flex-row">
+          <div className="flex w-full flex-col md:m-3 md:w-1/6">
             <div className="mb-8">
               <Toolbar
                 onNew={() => doGenerate(difficulty)}
@@ -151,7 +151,7 @@ export default function Page() {
               ))}
             </div>
           </div>
-          <div className="flex w-5/6 items-center justify-center">
+          <div className="flex w-full items-center justify-center md:w-5/6">
             <GridView grid={sudoku.grid} selected={selected} onSelect={setSelected} />
           </div>
         </div>
