@@ -157,8 +157,8 @@ export default function Page() {
             <NumberPad
               onInput={(num) => {
                 const { row, col } = selected || { row: null, col: null };
-                if (pencilMode && row && col) toggleNote(row, col, num);
-                else if (row && col) setCellValue(row, col, num);
+                if (pencilMode && row !== null && col !== null) toggleNote(row, col, num);
+                else if (row !== null && col !== null) setCellValue(row, col, num);
               }}
               onErase={() => {
                 if (selected) {
